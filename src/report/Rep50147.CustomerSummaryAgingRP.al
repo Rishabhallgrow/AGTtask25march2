@@ -1,4 +1,4 @@
-report 50147 "Customer - Summary Aging_RP"
+report 50147 "Customeaging_RP"
 {
     DefaultLayout = RDLC;
     RDLCLayout = './1CustomerSummaryAging1.rdl';
@@ -17,6 +17,24 @@ report 50147 "Customer - Summary Aging_RP"
             column(Customer_No_; "No.")
             {
             }
+            column(PeriodStartDate_2_; Format(StartDate[2]))
+            {
+            }
+            column(PeriodStartDate_3_; Format(StartDate[3]))
+            {
+            }
+            column(PeriodStartDate_4_; Format(StartDate[4]))
+            {
+            }
+            column(PeriodStartDate_3_1; Format(StartDate[3] - 1))
+            {
+            }
+            column(PeriodStartDate_4_1; Format(StartDate[4] - 1))
+            {
+            }
+            column(PeriodStartDate_5_1; Format(StartDate[5] - 1))
+            {
+            }
 
             dataitem("Integer"; "Integer")
             {
@@ -24,32 +42,32 @@ report 50147 "Customer - Summary Aging_RP"
                 column(Currency2_Code; TempCurrency.Code)
                 {
                 }
-                column(LineTotalCustBalance_Control67; LineTotalCustBalance)
+                column(LineTotalCustBalance; LineTotalCustBalance)
                 {
                     AutoFormatExpression = TempCurrency.Code;
                     AutoFormatType = 1;
                 }
-                column(CustBalanceDue_1_Control72; CustBalanceDue[1])
+                column(CustBalanceDue_1; CustBalanceDue[1])
                 {
                     AutoFormatExpression = TempCurrency.Code;
                     AutoFormatType = 1;
                 }
-                column(CustBalanceDue_2_Control71; CustBalanceDue[2])
+                column(CustBalanceDue_2; CustBalanceDue[2])
                 {
                     AutoFormatExpression = TempCurrency.Code;
                     AutoFormatType = 1;
                 }
-                column(CustBalanceDue_3_Control70; CustBalanceDue[3])
+                column(CustBalanceDue_3; CustBalanceDue[3])
                 {
                     AutoFormatExpression = TempCurrency.Code;
                     AutoFormatType = 1;
                 }
-                column(CustBalanceDue_4_Control69; CustBalanceDue[4])
+                column(CustBalanceDue_4; CustBalanceDue[4])
                 {
                     AutoFormatExpression = TempCurrency.Code;
                     AutoFormatType = 1;
                 }
-                column(CustBalanceDue_5_Control68; CustBalanceDue[5])
+                column(CustBalanceDue_5; CustBalanceDue[5])
                 {
                     AutoFormatExpression = TempCurrency.Code;
                     AutoFormatType = 1;
@@ -71,7 +89,7 @@ report 50147 "Customer - Summary Aging_RP"
                     for i := 1 to 5 do begin
                         DtldCustLedgEntry12.SetCurrentKey("Customer No.", "Initial Entry Due Date");
                         DtldCustLedgEntry12.SetRange("Customer No.", Customer."No.");
-                        DtldCustLedgEntry12.SetRange("Initial Entry Due Date", PeriodStartDate[i], PeriodStartDate[i + 1] - 1);
+                        DtldCustLedgEntry12.SetRange("Initial Entry Due Date", StartDate[i], StartDate[i + 1] - 1);
                         DtldCustLedgEntry12.SetRange("Currency Code", TempCurrency.Code);
                         DtldCustLedgEntry12.CalcSums(Amount);
                         CustBalanceDue[i] := DtldCustLedgEntry12.Amount;
@@ -84,25 +102,25 @@ report 50147 "Customer - Summary Aging_RP"
 
             trigger OnAfterGetRecord()
             var
-                DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+                detailcustentry: Record "Detailed Cust. Ledg. Entry";
                 FilteredCustomer: Record Customer;
             begin
                 FilteredCustomer.CopyFilters(Customer);
-                FilteredCustomer.SetFilter("Date Filter", '..%1', PeriodStartDate[2]);
+                FilteredCustomer.SetFilter("Date Filter", '..%1', StartDate[2]);
                 LineTotalCustBalance := 0;
-                CopyFilter("Currency Filter", DtldCustLedgEntry."Currency Code");
+                CopyFilter("Currency Filter", detailcustentry."Currency Code");
 
                 for i := 1 to 5 do begin
-                    DtldCustLedgEntry.SetCurrentKey("Customer No.", "Initial Entry Due Date");
-                    DtldCustLedgEntry.SetRange("Customer No.", "No.");
-                    DtldCustLedgEntry.SetRange("Initial Entry Due Date", PeriodStartDate[i], PeriodStartDate[i + 1] - 1);
-                    DtldCustLedgEntry.CalcSums("Amount (LCY)");
-                    CustBalanceDue[i] := DtldCustLedgEntry."Amount (LCY)";
-                    CustBalanceDueLCY[i] := DtldCustLedgEntry."Amount (LCY)";
+                    detailcustentry.SetCurrentKey("Customer No.", "Initial Entry Due Date");
+                    detailcustentry.SetRange("Customer No.", "No.");
+                    detailcustentry.SetRange("Initial Entry Due Date", StartDate[i], StartDate[i + 1] - 1);
+                    detailcustentry.CalcSums("Amount (LCY)");
+                    CustBalanceDue[i] := detailcustentry."Amount (LCY)";
+                    CustBalanceDueLCY[i] := detailcustentry."Amount (LCY)";
                     if PrintAmountsInLCY then
-                        InCustBalanceDueLCY[i] += DtldCustLedgEntry."Amount (LCY)"
+                        InCustBalanceDueLCY[i] += detailcustentry."Amount (LCY)"
                     else
-                        InCustBalanceDueLCY2[i] += DtldCustLedgEntry."Amount (LCY)";
+                        InCustBalanceDueLCY2[i] += detailcustentry."Amount (LCY)";
                     LineTotalCustBalance := LineTotalCustBalance + CustBalanceDueLCY[i];
                     TotalCustBalanceLCY := TotalCustBalanceLCY + CustBalanceDueLCY[i];
                 end;
@@ -127,19 +145,23 @@ report 50147 "Customer - Summary Aging_RP"
 
     requestpage
     {
-        SaveValues = true;
-
         layout
         {
             area(content)
             {
                 group(Options)
                 {
-                    Caption = 'Options';
-                    field(StartingDate; PeriodStartDate[2])
+                    Caption = 'Option';
+                    field(StartingDate; StartDate[2])
                     {
-                        ApplicationArea = Basic, Suite;
+                        ApplicationArea = all;
                         Caption = 'Starting Date';
+                    }
+                    field(PeriodLength; PeriodLengthReq)
+                    {
+                        ApplicationArea = all;
+                        Caption = 'length of period';
+
                     }
                 }
             }
@@ -151,8 +173,8 @@ report 50147 "Customer - Summary Aging_RP"
 
         trigger OnOpenPage()
         begin
-            if PeriodStartDate[2] = 0D then
-                PeriodStartDate[2] := WorkDate();
+            if StartDate[2] = 0D then
+                StartDate[2] := WorkDate();
             if Format(PeriodLengthReq) = '' then
                 Evaluate(PeriodLengthReq, '<1M>');
         end;
@@ -168,8 +190,8 @@ report 50147 "Customer - Summary Aging_RP"
     begin
         CustFilter := FormatDocument.GetRecordFiltersWithCaptions(Customer);
         for i := 3 to 5 do
-            PeriodStartDate[i] := CalcDate(PeriodLengthReq, PeriodStartDate[i - 1]);
-        PeriodStartDate[6] := DMY2Date(31, 12, 9999);
+            StartDate[i] := CalcDate(PeriodLengthReq, StartDate[i - 1]);
+        StartDate[6] := DMY2Date(31, 12, 9999);
     end;
 
     var
@@ -178,7 +200,7 @@ report 50147 "Customer - Summary Aging_RP"
         PeriodLengthReq: DateFormula;
         CustFilter: Text;
         PrintAmountsInLCY: Boolean;
-        PeriodStartDate: array[6] of Date;
+        StartDate: array[6] of Date;
         CustBalanceDue: array[5] of Decimal;
         CustBalanceDueLCY: array[5] of Decimal;
         LineTotalCustBalance: Decimal;

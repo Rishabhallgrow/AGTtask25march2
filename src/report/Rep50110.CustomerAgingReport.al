@@ -41,7 +41,7 @@ report 50110 "Customer Aging Report_RP"
                 var
                     DaysOverdue: Integer;
                 begin
-                    DaysOverdue := WorkDate() - "Due Date";
+                    DaysOverdue := Today - "Due Date";
 
                     if DaysOverdue < 0 then
                         "Original Amount" += "Remaining Amount"
